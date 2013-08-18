@@ -98,10 +98,10 @@ class FullHouseTest(unittest.TestCase):
             Card(2, 'spades')
         ]
         my_hand = Hand(my_cards)
-        assert my_hand.best_category == Categories.FullHouse
+        assert my_hand.best_category() == Categories.FullHouse
 
 class StraightTest(unittest.TestCase):
     def runTest(self):
         hand = values_as_hand([2, 3, 4, 5, 6])
         #raise Exception( hand.best_category )
-        assert hand.best_category == Categories.Straight
+        assert hand.best_category() == Categories.Straight
