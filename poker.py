@@ -9,8 +9,12 @@ import unittest
 # Card: Number, suit
 Card = namedtuple('card', ('value', 'suit'))
 
-Suits = Enum('clubs', 'spades', 'hearts', 'diamonds')
-Categories = Enum('HighCard', 'OnePair', 'TwoPair', 'ThreeOfAKind', 'Straight', 'Flush', 'FullHouse', 'FourOfAKind', 'StraightFlush')
+class PrettyEnum(Enum):
+    def __str__(self):
+        return c.key
+
+Suits = PrettyEnum('clubs', 'spades', 'hearts', 'diamonds')
+Categories = PrettyEnum('HighCard', 'OnePair', 'TwoPair', 'ThreeOfAKind', 'Straight', 'Flush', 'FullHouse', 'FourOfAKind', 'StraightFlush')
 
 
 class Hand(object):
@@ -39,7 +43,7 @@ class Hand(object):
         return reduce(eq, tuple(c.suit for c in self.cards))
 
     def is_straight(self):
-        return self.values == range(self.values[0], self.values[-1] + 1)
+        return self.values() == range(self.values()[0], self.values()[-1] + 1)
 
     # We need to keep the cards that compose the hand associated with the "value composition"
     def get_categories(self):
@@ -56,27 +60,25 @@ class Hand(object):
 
         return categories
     
-    @property
     def values(self):
         return sorted([c.value for c in self.cards])
 
-    @property
     def best_category(self):
         return max(self.get_categories())
 
-    # Need a way to compare only the cards' values that make up the category.
-    # Probably best to keep the cards associated with their value composition (count_values)
-    # Ie, at some point, we need to seperate the hand from the kicker
+    # Need to keep the cards associated with their value composition (count_values)
+    # Ie, at some point, we need to seperate the hand from the kicker.
+    # And when the best category is determined, we'll want to know what cards comprise it: the others are the kicker.
     def __eq__(self, other):
-        return self.best_category == other.best_category and self.values == other.values
+        return self.best_category() == other.best_category and self.values() == other.values
 
     def __gt__(self, other):
-        return self.best_category > other.best_category or \
-            (self.best_category == other.best_category and self.values > other.values)
+        return self.best_category() > other.best_category or \
+            (self.best_category() == other.best_category and self.values() > other.values)
 
     def __lt__(self, other):
-        return self.best_category < other.best_category or \
-            (self.best_category == other.best_category and self.values < other.values)
+        return self.best_category() < other.best_category or \
+            (self.best_category() == other.best_category and self.values() < other.values)
 
     def __str__(self):
         return ', '.join(map(str, self.cards))
