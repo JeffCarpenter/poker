@@ -95,7 +95,9 @@ class FullHouseTest(unittest.TestCase):
             Card(5, 'spades'),
             Card(2, 'hearts'),
             Card(2, 'diamonds'),
-            Card(2, 'spades')
+            Card(2, 'spades'),
+            Card(6, 'hearts'),
+            Card(10, 'spades')
         ]
         my_hand = Hand(my_cards)
         assert my_hand.best_category() == Categories.FullHouse
