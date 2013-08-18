@@ -1,57 +1,29 @@
-from itertools import groupby
+from itertools import groupby, cycle
 from collections import defaultdict
 from collections import namedtuple
 from operator import eq
+from enum import Enum
 import unittest
 
 # Hand: 5 cards
 # Card: Number, suit
 Card = namedtuple('card', ('value', 'suit'))
 
+Suits = Enum('clubs', 'spades', 'hearts', 'diamonds')
+Categories = Enum('HighCard', 'OnePair', 'TwoPair', 'ThreeOfAKind', 'Straight', 'Flush', 'FullHouse', 'FourOfAKind', 'StraightFlush')
 
-class Category(object):
-    def __cmp__(self, other):
-        return self.__class__.val.__cmp__(other.__class__.val)
-
-
-class StraightFlush(Category):
-    val = 10
-
-class FourOfAKind(Category):
-    val = 9
-
-class FullHouse(Category):
-    val = 8
-
-class Flush(Category):
-    val = 7
-
-class Straight(Category):
-    val = 6
-
-class ThreeOfAKind(Category):
-    val = 5
-
-class TwoPair(Category):
-    val = 4
-
-class OnePair(Category):
-    val = 3
-
-class HighCard(Category):
-    val = 2
 
 class Hand(object):
-    def __init__(self):
-        self.cards = set()
-        self.value_compositions = {
+    value_compositions = {
          # (1, 1, 1, 1, 1): 'allunique',
-         (1, 4): FourOfAKind,
-         (2, 3): FullHouse,
-         (1, 1, 3): ThreeOfAKind,
-         (1, 2, 2): TwoPair,
-         (1, 1, 1, 2): OnePair,
+         (1, 4): Categories.FourOfAKind,
+         (2, 3): Categories.FullHouse,
+         (1, 1, 3): Categories.ThreeOfAKind,
+         (1, 2, 2): Categories.TwoPair,
+         (1, 1, 1, 2): Categories.OnePair,
     }
+    def __init__(self, cards=set()):
+        self.cards = cards
 
     def add_card(self, card):
         self.cards.add(card)
@@ -63,47 +35,59 @@ class Hand(object):
         groups = self.groupby_value()
         return tuple(sorted(map(len, groups)))
 
-    # This is only used for flushes and highcard
     def is_flush(self):
         return reduce(eq, tuple(c.suit for c in self.cards))
 
     def is_straight(self):
-        cards = list(self.cards)
-        return self.cards == range(cards[0].value, cards[-1].value + 1)
+        return self.values == range(self.values[0], self.values[-1] + 1)
 
     # We need to keep the cards that compose the hand associated with the "value composition"
     def get_categories(self):
-        categories = set((HighCard,))
-        comp = self.value_compositions.get(self.count_values(), None)
+        categories = set((Categories.HighCard,))
+        comp = Hand.value_compositions.get(self.count_values(), None)
         if comp:
             categories.add(comp)
         if self.is_straight():
-            categories.add(Straight)
+            categories.add(Categories.Straight)
         if self.is_flush():
-            categories.add(Flush)
-        if {Straight, Flush}.issubset(categories):
-            categories.add(StraightFlush)
+            categories.add(Categories.Flush)
+        if {Categories.Straight, Categories.Flush}.issubset(categories):
+            categories.add(Categories.StraightFlush)
 
         return categories
-        
+    
+    @property
+    def values(self):
+        return sorted([c.value for c in self.cards])
+
+    @property
     def best_category(self):
         return max(self.get_categories())
 
     # Need a way to compare only the cards' values that make up the category.
-    # Probably best to have a data structure with the cards associated with their value composition (count_values)
+    # Probably best to keep the cards associated with their value composition (count_values)
+    # Ie, at some point, we need to seperate the hand from the kicker
     def __eq__(self, other):
-        return self.best_category() == other.best_category() and all([c[0].value == c[1].value for c in zip(self.cards, other._cards)])
+        return self.best_category == other.best_category and self.values == other.values
 
     def __gt__(self, other):
-        return self.best_category() > other.best_category()
+        return self.best_category > other.best_category or \
+            (self.best_category == other.best_category and self.values > other.values)
 
     def __lt__(self, other):
-        return self.best_category() < other.best_category()
+        return self.best_category < other.best_category or \
+            (self.best_category == other.best_category and self.values < other.values)
 
+    def __str__(self):
+        return ', '.join(map(str, self.cards))
 
-class MyTest(unittest.TestCase):
-    def test_fullhouse(self):
+def values_as_hand(values):
+    hand = Hand()
+    cards = [Card(v, s) for (v, s) in zip(values, cycle(Suits))]
+    return Hand(cards)
 
+class FullHouseTest(unittest.TestCase):
+    def runTest(self):
         my_cards = [
             Card(5, 'clubs'),
             Card(5, 'spades'),
@@ -111,6 +95,11 @@ class MyTest(unittest.TestCase):
             Card(2, 'diamonds'),
             Card(2, 'spades')
         ]
-        my_hand = Hand()
-        my_hand.cards = my_cards
-        assert my_hand.best_category() == FullHouse
+        my_hand = Hand(my_cards)
+        assert my_hand.best_category == Categories.FullHouse
+
+class StraightTest(unittest.TestCase):
+    def runTest(self):
+        hand = values_as_hand([2, 3, 4, 5, 6])
+        #raise Exception( hand.best_category )
+        assert hand.best_category == Categories.Straight
