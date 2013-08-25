@@ -50,6 +50,7 @@ class FlushTest(unittest.TestCase):
     hand = Hand(cards)
     self.assertEqual(hand.best_category, Categories.Flush)
 
+
 TwoPair = test_hand_category([2, 2, 3, 4, 5], Categories.OnePair)
 
 class HighCardTest(unittest.TestCase):
