@@ -31,7 +31,7 @@ class Card(object):
         return '<Card(value=%s, suit=%s)>' % (self.value, self.suit)
 
 Suits = Enum('Clubs', 'Spades', 'Hearts', 'Diamonds')
-#Values = Enum('One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Jack', ' Queen', 'King', 'Ace')
+Values = Enum('One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Jack', ' Queen', 'King', 'Ace')
 Categories = Enum('HighCard', 'OnePair', 'TwoPair', 'ThreeOfAKind', 'Straight', 'Flush', 'FullHouse', 'FourOfAKind', 'StraightFlush')
 
 
@@ -65,7 +65,7 @@ class Hand(object):
         return len({c.suit for c in self.cards}) == 1
 
     def is_straight(self):
-        return self.values() == range(self.values()[0], self.values()[-1] + 1)
+        return self.values == range(self.values[0], self.values[-1] + 1)
 
     # We need to keep the cards that compose the hand associated with the "value composition"
     def get_categories(self):
@@ -82,6 +82,7 @@ class Hand(object):
 
         return categories
     
+    @property
     def values(self):
         return sorted([c.value for c in self.cards])
 
@@ -91,15 +92,15 @@ class Hand(object):
 
     # TODO: Keep the cards associated with their value composition (count_values) in order to seperate the hand from the kicker.
     def __eq__(self, other):
-        return self.best_category() == other.best_category and self.values() == other.values
+        return self.best_category == other.best_category and self.values == other.values
 
     def __gt__(self, other):
-        return self.best_category() > other.best_category or \
-            (self.best_category() == other.best_category and self.values() > other.values)
+        return self.best_category > other.best_category or \
+            (self.best_category == other.best_category and self.values > other.values)
 
     def __lt__(self, other):
-        return self.best_category() < other.best_category or \
-            (self.best_category() == other.best_category and self.values() < other.values)
+        return self.best_category < other.best_category or \
+            (self.best_category == other.best_category and self.values < other.values)
 
     def __str__(self):
         return ', '.join(map(str, self.cards))
@@ -114,48 +115,3 @@ def values_as_hand(values):
 
 def build_hand(raw_cards):
     return {Card(c[0], c[1]) for c in raw_cards}
-
-# 'HighCard', 'OnePair', 'TwoPair', 'ThreeOfAKind', 'FourOfAKind', 'StraightFlush'
-##################
-### Unit tests ###
-##################
-class CategoriesTest(unittest.TestCase):
-    def runTest(self):
-        Categories.OnePair < Categories.StraightFlush
-
-
-class FullHouseTest(unittest.TestCase):
-    def runTest(self):
-        cards = {
-            Card(5, 'clubs'),
-            Card(5, 'spades'),
-            Card(2, 'hearts'),
-            Card(2, 'diamonds'),
-            Card(2, 'spades'),
-        }
-        hand = Hand(cards)
-        self.assertEqual(hand.best_category, Categories.FullHouse, hand.count_groups())
-
-
-class StraightTest(unittest.TestCase):
-    def runTest(self):
-        hand = values_as_hand([2, 3, 4, 5, 6])
-        self.assertEqual(hand.best_category, Categories.Straight)
-
-
-class FlushTest(unittest.TestCase):
-  def runTest(self):
-    cards = {
-        Card(1, 'clubs'),
-        Card(2, 'clubs'),
-        Card(5, 'clubs'),
-        Card(6, 'clubs'),
-        Card(7, 'clubs')
-    }
-    hand = Hand(cards)
-    self.assertEqual(hand.best_category, Categories.Flush)
-
-class HighCardTest(unittest.TestCase):
-    def runTest(self):
-        hand = values_as_hand([2, 7, 4, 5, 6])
-        self.assertEqual(hand.best_category, Categories.HighCard)
