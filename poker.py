@@ -154,3 +154,8 @@ class FlushTest(unittest.TestCase):
     }
     hand = Hand(cards)
     self.assertEqual(hand.best_category, Categories.Flush)
+
+class HighCardTest(unittest.TestCase):
+    def runTest(self):
+        hand = values_as_hand([2, 7, 4, 5, 6])
+        self.assertEqual(hand.best_category, Categories.HighCard)
