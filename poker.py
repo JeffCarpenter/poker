@@ -14,8 +14,6 @@ import unittest
     4. 2 & 3 (straight flush)
 """
 
-Card = namedtuple('card', ('value', 'suit'))
-
 class Card(object):
     def __init__(self, value, suit):
         self.value = value
@@ -46,10 +44,10 @@ class Hand(object):
     }
     def __init__(self, cards=set()):
         self.cards = cards
+
+    def rank(self):
         self.category = self.get_categories()
-       # self.ranked, self.kicker = self.split()
-
-
+        # self.ranked, self.kicker = self.split()
 
     def add_card(self, card):
         self.cards.add(card)
@@ -74,7 +72,6 @@ class Hand(object):
     def get_categories(self):
         categories = set()
         comp = Hand.value_compositions.get(self.count_values(), Categories.HighCard)
-        
         categories.add(comp)
         if self.is_straight():
             categories.add(Categories.Straight)
@@ -82,18 +79,26 @@ class Hand(object):
             categories.add(Categories.Flush)
         if {Categories.Straight, Categories.Flush}.issubset(categories):
             categories.add(Categories.StraightFlush)
-
         return categories
-    
+
+    @property
+    def punchers(self):
+        return self.cards - self.kickers
+
     @property
     def kickers(self):
         cat = self.best_category
-        if cat in {Categories.Flush, Categories.Straight}:
-            return {}
+        if cat in {Categories.StraightFlush, Categories.Flush, Categories.Straight}:
+            return set()
         elif cat == Categories.HighCard:
-            return set(sorted(cards)[:-1])
+            return set(sorted(self.cards)[:-1])
         else:
-            return {g for (i, g) in count_groups if i == 1}
+            kicker_groups = {g for (i, g) in self.count_groups() if i == 1}
+            kickers = set()
+            for group in kicker_groups:
+                for card in group:
+                    kickers.add(card)
+            return kickers
 
     @property
     def values(self):
