@@ -1,4 +1,4 @@
-from unittest import TestCase
+from unittest import TestCase, skip
 from itertools import repeat
 from poker import Hand, Card, Values, Suits, Categories, values_as_hand
 
@@ -66,3 +66,18 @@ class HighCardTest(TestCase):
     def runTest(self):
         hand = values_as_hand([2, 7, 4, 5, 6])
         self.assertEqual(hand.best_category, Categories.HighCard)
+
+
+class TwoPairVsOnePair(TestCase):
+    def runTest(self):
+        one_pair = values_as_hand([2, 2, 5, 5, 6])
+        two_pair = values_as_hand([1, 1, 3, 4, 7])
+        self.assertGreater(one_pair, two_pair)
+
+
+@skip('Working on it')
+class KickerTest(TestCase):
+    def runTest(self):
+        a = values_as_hand([2, 2, 3, 5, 6])
+        b = values_as_hand([2, 2, 4, 5, 6])
+        self.assertGreater(a, b)

@@ -46,6 +46,10 @@ class Hand(object):
     }
     def __init__(self, cards=set()):
         self.cards = cards
+        self.category = self.get_categories()
+       # self.ranked, self.kicker = self.split()
+
+
 
     def add_card(self, card):
         self.cards.add(card)
@@ -54,8 +58,7 @@ class Hand(object):
         return tuple(tuple(v) for (k, v) in groupby(sorted(self.cards), lambda c: c.value))
 
     def count_groups(self):
-        groups = tuple(tuple(v) for (k, v) in groupby(sorted(self.cards), lambda c: c.value))
-        return tuple((len(g), g) for g in groups)
+        return tuple((len(g), g) for g in self.groupby_value())
 
     def count_values(self):
         groups = self.groupby_value()
@@ -71,8 +74,8 @@ class Hand(object):
     def get_categories(self):
         categories = set()
         comp = Hand.value_compositions.get(self.count_values(), Categories.HighCard)
-        if comp:
-            categories.add(comp)
+        
+        categories.add(comp)
         if self.is_straight():
             categories.add(Categories.Straight)
         if self.is_flush():
@@ -82,6 +85,16 @@ class Hand(object):
 
         return categories
     
+    @property
+    def kickers(self):
+        cat = self.best_category
+        if cat in {Categories.Flush, Categories.Straight}:
+            return {}
+        elif cat == Categories.HighCard:
+            return set(sorted(cards)[:-1])
+        else:
+            return {g for (i, g) in count_groups if i == 1}
+
     @property
     def values(self):
         return sorted([c.value for c in self.cards])
