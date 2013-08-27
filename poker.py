@@ -35,7 +35,6 @@ Categories = Enum('HighCard', 'OnePair', 'TwoPair', 'ThreeOfAKind', 'Straight', 
 
 class Hand(object):
     value_compositions = {
-         # (1, 1, 1, 1, 1): 'allunique',
          (1, 4): Categories.FourOfAKind,
          (2, 3): Categories.FullHouse,
          (1, 1, 3): Categories.ThreeOfAKind,
@@ -47,7 +46,6 @@ class Hand(object):
 
     def rank(self):
         self.category = self.get_categories()
-        # self.ranked, self.kicker = self.split()
 
     def add_card(self, card):
         self.cards.add(card)
@@ -130,6 +128,3 @@ def values_as_hand(values):
     hand = Hand()
     cards = {Card(v, s) for (v, s) in zip(values, cycle(Suits))}
     return Hand(cards)
-
-def build_hand(raw_cards):
-    return {Card(c[0], c[1]) for c in raw_cards}
