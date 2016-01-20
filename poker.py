@@ -60,9 +60,11 @@ class Hand(object):
         groups = self.groupby_value()
         return tuple(sorted(map(len, groups)))
 
+    @property
     def is_flush(self):
         return len({c.suit for c in self.cards}) == 1
-
+    
+    @property
     def is_straight(self):
         return self.values == range(self.values[0], self.values[-1] + 1)
 
@@ -71,9 +73,9 @@ class Hand(object):
         categories = set()
         comp = Hand.value_compositions.get(self.count_values(), Categories.HighCard)
         categories.add(comp)
-        if self.is_straight():
+        if self.is_straight:
             categories.add(Categories.Straight)
-        if self.is_flush():
+        if self.is_flush:
             categories.add(Categories.Flush)
         if {Categories.Straight, Categories.Flush}.issubset(categories):
             categories.add(Categories.StraightFlush)
